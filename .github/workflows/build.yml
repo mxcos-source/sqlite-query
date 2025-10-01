@@ -1,0 +1,89 @@
+name: Build SQLite Query Tool
+
+on:
+  push:
+    tags: ['v*']
+  release:
+    types: [created]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build-windows:
+    name: Build Windows EXE
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Build Windows executable
+      run: |
+        go build -o jfxt-query.exe main.go
+
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: jfxt-query-windows
+        path: jfxt-query.exe
+
+    - name: Upload to Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./jfxt-query.exe
+        asset_name: jfxt-query.exe
+        asset_content_type: application/octet-stream
+
+  build-linux:
+    name: Build Linux Binary
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Build Linux binary
+      run: |
+        go build -o jfxt-query-linux main.go
+
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: jfxt-query-linux
+        path: jfxt-query-linux
+
+  build-macos:
+    name: Build macOS Binary
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.20'
+
+    - name: Build macOS binary
+      run: |
+        go build -o jfxt-query-macos main.go
+
+    - name: Upload macOS artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: jfxt-query-macos
+        path: jfxt-query-macos
