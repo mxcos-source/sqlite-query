@@ -5,7 +5,7 @@ on:
     tags: ['v*']
   release:
     types: [created]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build-windows:
@@ -20,6 +20,12 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.20'
+
+    # 添加依赖下载步骤
+    - name: Download dependencies
+      run: |
+        go mod download
+        go mod tidy
 
     - name: Build Windows executable
       run: |
@@ -55,6 +61,11 @@ jobs:
       with:
         go-version: '1.20'
 
+    - name: Download dependencies
+      run: |
+        go mod download
+        go mod tidy
+
     - name: Build Linux binary
       run: |
         go build -o jfxt-query-linux main.go
@@ -77,6 +88,11 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.20'
+
+    - name: Download dependencies
+      run: |
+        go mod download
+        go mod tidy
 
     - name: Build macOS binary
       run: |
