@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"text/tabwriter"
 
 	_ "github.com/mattn/go-sqlite3"
