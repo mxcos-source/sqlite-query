@@ -121,4 +121,8 @@ WHERE
 	if err = rows.Err(); err != nil {
 		log.Fatalf("遍历结果集失败: %v", err)
 	}
+
+	// 简单等待用户输入
+	fmt.Println("\n程序执行完成，按回车键退出...")
+	fmt.Scanln() // 等待用户按回车
 }
