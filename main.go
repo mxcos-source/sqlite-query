@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
 	"log"
@@ -16,7 +17,9 @@ func main() {
 	
 	// 检查数据库文件是否存在
 	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
-		log.Fatalf("错误: 数据库文件 '%s' 不存在于当前目录", dbFile)
+		fmt.Printf("错误: 数据库文件 '%s' 不存在于当前目录\n", dbFile)
+		waitForExit()
+		return
 	}
 
 	fmt.Printf("正在打开数据库: %s\n", dbFile)
@@ -24,22 +27,27 @@ func main() {
 	// 打开数据库连接
 	db, err := sql.Open("sqlite3", dbFile)
 	if err != nil {
-		log.Fatalf("数据库连接失败: %v", err)
+		fmt.Printf("数据库连接失败: %v\n", err)
+		waitForExit()
+		return
 	}
 	defer db.Close()
 
 	// 测试数据库连接
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("数据库连接测试失败: %v", err)
+		fmt.Printf("数据库连接测试失败: %v\n", err)
+		waitForExit()
+		return
 	}
 
-	// 执行你的 SQL 查询
+	// 执行你的 SQL 查询（增加了 tel 字段）
 	query := `
 SELECT
 	u.id,
 	u.type,
 	s.name,
+	s.tel,
 	(SELECT sum(m.top_up) FROM memberCardReFillRecord m WHERE m.member_id = u.id) AS money
 FROM
 	userMember u 
@@ -50,14 +58,18 @@ WHERE
 	fmt.Println("执行查询...")
 	rows, err := db.Query(query)
 	if err != nil {
-		log.Fatalf("SQL执行失败: %v", err)
+		fmt.Printf("SQL执行失败: %v\n", err)
+		waitForExit()
+		return
 	}
 	defer rows.Close()
 
 	// 获取列信息
 	columns, err := rows.Columns()
 	if err != nil {
-		log.Fatalf("获取列信息失败: %v", err)
+		fmt.Printf("获取列信息失败: %v\n", err)
+		waitForExit()
+		return
 	}
 
 	// 创建表格输出器
@@ -88,7 +100,7 @@ WHERE
 	for rows.Next() {
 		err := rows.Scan(valuePtrs...)
 		if err != nil {
-			log.Printf("读取数据失败: %v", err)
+			fmt.Printf("读取数据失败: %v\n", err)
 			continue
 		}
 
@@ -119,10 +131,15 @@ WHERE
 	fmt.Printf("\n总共查询到 %d 行数据\n", rowCount)
 
 	if err = rows.Err(); err != nil {
-		log.Fatalf("遍历结果集失败: %v", err)
+		fmt.Printf("遍历结果集失败: %v\n", err)
 	}
 
-	// 简单等待用户输入
-	fmt.Println("\n程序执行完成，按回车键退出...")
-	fmt.Scanln() // 等待用户按回车
+	// 等待用户按键退出
+	waitForExit()
+}
+
+// waitForExit 等待用户按键后退出
+func waitForExit() {
+	fmt.Println("\n按回车键退出程序...")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
 }
